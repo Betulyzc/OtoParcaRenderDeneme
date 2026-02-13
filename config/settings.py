@@ -6,8 +6,6 @@ Production-ready configuration (Render / DigitalOcean friendly)
 
 from pathlib import Path
 import os
-import cloudinary
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -132,9 +130,11 @@ USE_I18N = True
 USE_TZ = True
 
 # ---------------------------------------------------
-# STATIC
+# STATIC / MEDIA (Django 5.2+: STORAGES)
 # ---------------------------------------------------
 STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"  # local dev
 
 if DEBUG:
     STATICFILES_DIRS = [BASE_DIR / "static"]
@@ -142,25 +142,27 @@ else:
     STATICFILES_DIRS = []
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# ---------------------------------------------------
-# MEDIA (✅ Cloudinary - ücretsiz çözüm)
-# ---------------------------------------------------
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"  # local dev için (prod'da Cloudinary kullanacağız)
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+}
 
+# Prod'da Cloudinary varsa default storage'ı Cloudinary yap
 USE_CLOUDINARY = (not DEBUG) and bool(os.getenv("CLOUDINARY_CLOUD_NAME"))
 
 if USE_CLOUDINARY:
-    # Cloudinary storage kullan
-    INSTALLED_APPS += [
-        "cloudinary",
-        "cloudinary_storage",
-    ]
+    INSTALLED_APPS += ["cloudinary", "cloudinary_storage"]
 
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+    STORAGES["default"] = {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    }
 
+    import cloudinary
     cloudinary.config(
         cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
         api_key=os.getenv("CLOUDINARY_API_KEY"),
