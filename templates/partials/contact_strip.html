@@ -1,0 +1,71 @@
+<section class="contact-strip">
+  <div class="container contact-grid">
+
+    <!-- SOL: Harita -->
+    <div class="map-box">
+      <iframe
+        src="{{ MAP_EMBED_SRC }}"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+
+    <!-- SAĞ: Bilgiler -->
+    <div class="contact-box">
+      <h3 style="margin-top:0">{{ BUSINESS_NAME }}</h3>
+
+      <ul class="contact-list">
+        <li>
+          <strong>Adres:</strong> {{ BUSINESS_ADDRESS }}
+        </li>
+
+        <li>
+          <strong>Telefon:</strong>
+          <a href="tel:{{ BUSINESS_PHONE }}">{{ BUSINESS_PHONE }}</a>
+        </li>
+
+        {% if BUSINESS_OWNER %}
+        <li>
+          <strong>Dükkan Sahibi:</strong> {{ BUSINESS_OWNER }}
+        </li>
+        {% endif %}
+
+        {% if BUSINESS_HOURS %}
+        <li>
+          <strong>Çalışma Saatleri:</strong> {{ BUSINESS_HOURS }}
+        </li>
+        {% endif %}
+      </ul>
+
+      <div class="social-links">
+        {% if BUSINESS_WHATSAPP %}
+        <a class="pill"
+           href="https://wa.me/{{ BUSINESS_WHATSAPP }}"
+           target="_blank"
+           rel="noopener">
+           WhatsApp
+        </a>
+        {% endif %}
+
+        {% if BUSINESS_INSTAGRAM %}
+        <a class="pill"
+           href="{{ BUSINESS_INSTAGRAM }}"
+           target="_blank"
+           rel="noopener">
+           Instagram
+        </a>
+        {% endif %}
+
+        {% if BUSINESS_FACEBOOK %}
+        <a class="pill"
+           href="{{ BUSINESS_FACEBOOK }}"
+           target="_blank"
+           rel="noopener">
+           Facebook
+        </a>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+</section>

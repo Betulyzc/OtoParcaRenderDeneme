@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{{ p.name }} | {{ p.brand.name }} Yedek Parça{% endblock %}
+{% block meta_desc %}
+  {% if p.short_desc %}
+    {{ p.short_desc|truncatechars:160 }}
+  {% else %}
+    {{ p.name }} için OEM kodu ve uyumluluk bilgileriyle doğru yedek parçayı bulun. WhatsApp ile hızlı bilgi alın.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+{#  Breadcrumb #}
+<nav class="breadcrumb" aria-label="breadcrumb">
+  <a href="{% url 'home' %}">Ana Sayfa</a>
+  <span>›</span>
+  <a href="{% url 'brand_page' p.brand.slug %}">{{ p.brand.name }} Yedek Parça</a>
+  <span>›</span>
+  <span aria-current="page">{{ p.name }}</span>
+</nav>
+
+<article class="product-detail">
+  <div class="gallery">
+    {% if p.image %}
+      <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
+    {% endif %}
+  </div>
+
+  <div class="info">
+    <h1>{{ p.name }}</h1>
+    <p class="meta">{{ p.brand.name }} · {{ p.category.name }}</p>
+
+    {% if p.oem_code %}<p><strong>OEM Kodu:</strong> {{ p.oem_code }}</p>{% endif %}
+    {% if p.compatible %}<p><strong>Uyumluluk:</strong> {{ p.compatible }}</p>{% endif %}
+    {% if p.short_desc %}<p class="desc">{{ p.short_desc }}</p>{% endif %}
+
+    {#  WhatsApp: SITE_URL + get_absolute_url #}
+    {% with product_url=SITE_URL|add:p.get_absolute_url %}
+      <a class="buy big"
+         target="_blank"
+         rel="nofollow noopener"
+         href="https://wa.me/{{ BUSINESS_WHATSAPP }}?text={{ 'Merhaba, şu ürün hakkında bilgi almak istiyorum: '|add:p.name|add:' '|add:product_url|urlencode }}">
+        WhatsApp ile Bilgi Al
+      </a>
+    {% endwith %}
+  </div>
+</article>
+
+{#  SEO içerik bloğu #}
+<section class="seo-content">
+  <h2>{{ p.brand.name }} için {{ p.name }}</h2>
+  <p>
+    Bu ürün sayfasında {{ p.brand.name }} araçlar için uygun yedek parça bilgilerini bulabilirsiniz.
+    OEM/parça kodu ve uyumluluk bilgilerini kontrol ederek doğru parçayı seçebilir, emin olmadığınız durumda WhatsApp üzerinden hızlıca bilgi alabilirsiniz.
+  </p>
+</section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ p.name|escape }}",
+  "brand": { "@type": "Brand", "name": "{{ p.brand.name|escape }}" },
+  "mpn": "{{ p.oem_code|default:''|escape }}",
+  "url": "{{ SITE_URL }}{{ p.get_absolute_url }}"{% if p.image %},
+  "image": "{{ SITE_URL }}{{ p.image.url }}"{% endif %}
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Aracınız İçin Doğru Parçalar{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Aracınız İçin En Doğru Parçalar</h1>
+  <p>Markanı seçerek keşfetmeye başla</p>
+</section>
+
+<section class="brand-grid">
+  {% for b in brands %}
+    <a class="brand-card" href="{% url 'brand_page' b.slug %}">
+      {% if b.logo %}
+        <img src="{{ b.logo.url }}" alt="{{ b.name }} logosu" loading="lazy">
+      {% else %}
+        <div class="brand-fallback">{{ b.name|first|upper }}</div>
+      {% endif %}
+      <div class="brand-name">{{ b.name }}</div>
+    </a>
+  {% empty %}
+    <p>Henüz ürün girilmedi.</p>
+  {% endfor %}
+</section>
+{% endblock %}
+
+{% block below_main %}
+  {% include "partials/contact_strip.html" %}
+{% endblock %}

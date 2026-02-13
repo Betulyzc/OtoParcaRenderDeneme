@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Tüm Oto Yedek Parçalar | Umay Oto Yedek Parça{% endblock %}
+{% block meta_desc %}Tüm oto yedek parça ürünleri: OEM kodu, marka/kategori bilgisi ve hızlı WhatsApp iletişimi ile aradığınız parçayı kolayca bulun.{% endblock %}
+
+{% block content %}
+
+{# Breadcrumb #}
+<nav class="breadcrumb" aria-label="breadcrumb">
+  <a href="{% url 'home' %}">Ana Sayfa</a>
+  <span>›</span>
+  <span aria-current="page">Tüm Ürünler</span>
+</nav>
+
+<h1 class="page-title">Tüm Ürünler</h1>
+
+<form class="search" method="get">
+  <input name="q" placeholder="OEM / ürün / araç ara…" value="{{ request.GET.q|default:'' }}">
+  <button type="submit">Ara</button>
+</form>
+
+<section class="product-grid">
+  {% for p in products %}
+    <article class="product-card">
+      <a href="{% url 'product_detail' p.slug %}">
+        {% if p.image %}
+          <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
+        {% endif %}
+        <h2>{{ p.name }}</h2>
+      </a>
+
+      <div class="meta">
+        {{ p.brand.name }} · {{ p.category.name }}{% if p.oem_code %} · {{ p.oem_code }}{% endif %}
+      </div>
+
+      {% if p.short_desc %}
+        <p class="desc">{{ p.short_desc|truncatechars:120 }}</p>
+      {% endif %}
+
+      {# WhatsApp Butonu #}
+      {% with product_url=SITE_URL|add:p.get_absolute_url %}
+        <a class="buy"
+           target="_blank"
+           rel="nofollow noopener"
+           href="https://wa.me/{{ BUSINESS_WHATSAPP }}?text={{ 'Merhaba, şu ürün hakkında bilgi almak istiyorum: '|add:p.name|add:' '|add:product_url|urlencode }}">
+          WhatsApp ile Sor
+        </a>
+      {% endwith %}
+    </article>
+  {% empty %}
+    <p>Ürün bulunamadı.</p>
+  {% endfor %}
+</section>
+
+{# SEO içerik bloğu (sayfanın altı) #}
+<section class="seo-content">
+  <h2>Tüm Oto Yedek Parçalar</h2>
+  <p>
+    Oto yedek parça seçerken OEM/parça kodu, uyumluluk ve doğru marka/kategori bilgisi en önemli kriterlerdendir.
+    Bu sayfada tüm ürünleri listeleyebilir, arama alanından OEM kodu veya ürün adıyla hızlıca filtreleyebilirsiniz.
+    Ürün detaylarında OEM kodu ve uyumluluk bilgisini kontrol edebilir, WhatsApp üzerinden hızlıca bilgi alabilirsiniz.
+  </p>
+</section>
+
+{% endblock %}
