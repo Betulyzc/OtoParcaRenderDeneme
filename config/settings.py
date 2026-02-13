@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ENV = os.getenv("DJANGO_ENV", "dev")  # dev / prod
 DEBUG = ENV != "prod"
 
-# Prod'da SECRET_KEY env'den gelsin (yoksa crash etsin)
+# SECRET KEY
 if DEBUG:
     SECRET_KEY = os.getenv(
         "SECRET_KEY",
@@ -26,18 +26,27 @@ else:
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY is required in production (set env SECRET_KEY).")
 
-# Site URL (WhatsApp / ürün linkleri vs.)
-SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000" if DEBUG else "https://otoparca-2.onrender.com")
+# SITE URL (WhatsApp / ürün linkleri vs.)
+if DEBUG:
+    SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000")
+else:
+    SITE_URL = os.getenv("SITE_URL")
+    if not SITE_URL:
+        raise RuntimeError("SITE_URL is required in production (set env SITE_URL).")
 
 # ---------------------------------------------------
 # HOSTS / CSRF
 # ---------------------------------------------------
-# Örn env:
-# ALLOWED_HOSTS=otoparca-2.onrender.com,umayotoyedekparca.com,www.umayotoyedekparca.com
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+# env örn:
+# ALLOWED_HOSTS=otoparcarenderdeneme.onrender.com,.onrender.com,umayotoyedekparca.com,www.umayotoyedekparca.com
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+    if h.strip()
+]
 
-# Örn env:
-# CSRF_TRUSTED_ORIGINS=https://otoparca-2.onrender.com,https://umayotoyedekparca.com,https://www.umayotoyedekparca.com
+# env örn:
+# CSRF_TRUSTED_ORIGINS=https://otoparcarenderdeneme.onrender.com,https://umayotoyedekparca.com,https://www.umayotoyedekparca.com
 _csrf = os.getenv("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [x.strip() for x in _csrf.split(",") if x.strip()]
 
@@ -101,7 +110,6 @@ TEMPLATES = [
 # ---------------------------------------------------
 # DATABASE
 # ---------------------------------------------------
-# Başlangıç için SQLite (Render'da deploy sonrası dosya kalıcılığı sınırlı olabilir)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -134,13 +142,16 @@ STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Dev’de local static klasörün
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# Dev’de local static klasörün (prod’da kapatıyoruz)
+if DEBUG:
+    STATICFILES_DIRS = [BASE_DIR / "static"]
+else:
+    STATICFILES_DIRS = []
 
 # Prod’da collectstatic buraya toplar
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Whitenoise cache'li static (opsiyonel ama iyi)
+# Whitenoise cache'li static
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -152,13 +163,3 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
-# ---------------------------------------------------
-# BUSINESS INFO (contact strip)
-# ---------------------------------------------------
-BUSINESS_NAME = "OtoParça"
-BUSINESS_ADDRESS = "Ataşehir, İstanbul"
-BUSINESS_PHONE = "+90 532 000 00 00"
-BUSINESS_EMAIL = "iletisim@otoparca.com"
-
-MAP_EMBED_SRC = os.getenv("MAP_EMBED_SRC", "https://www.google.com/maps/embed?pb=YOUR_EMBED_CODE")
