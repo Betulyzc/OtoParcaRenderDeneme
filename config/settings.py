@@ -6,6 +6,8 @@ Production-ready configuration (Render / DigitalOcean friendly)
 
 from pathlib import Path
 import os
+import cloudinary
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -37,16 +39,12 @@ else:
 # ---------------------------------------------------
 # HOSTS / CSRF
 # ---------------------------------------------------
-# env örn:
-# ALLOWED_HOSTS=otoparcarenderdeneme.onrender.com,.onrender.com,umayotoyedekparca.com,www.umayotoyedekparca.com
 ALLOWED_HOSTS = [
     h.strip()
     for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
     if h.strip()
 ]
 
-# env örn:
-# CSRF_TRUSTED_ORIGINS=https://otoparcarenderdeneme.onrender.com,https://umayotoyedekparca.com,https://www.umayotoyedekparca.com
 _csrf = os.getenv("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [x.strip() for x in _csrf.split(",") if x.strip()]
 
@@ -72,8 +70,6 @@ INSTALLED_APPS = [
 # ---------------------------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-
-    # ✅ Static dosyaları prod’da sorunsuz servis etmek için
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -136,23 +132,41 @@ USE_I18N = True
 USE_TZ = True
 
 # ---------------------------------------------------
-# STATIC / MEDIA
+# STATIC
 # ---------------------------------------------------
 STATIC_URL = "/static/"
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
 
-# Dev’de local static klasörün (prod’da kapatıyoruz)
 if DEBUG:
     STATICFILES_DIRS = [BASE_DIR / "static"]
 else:
     STATICFILES_DIRS = []
 
-# Prod’da collectstatic buraya toplar
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Whitenoise cache'li static
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# ---------------------------------------------------
+# MEDIA (✅ Cloudinary - ücretsiz çözüm)
+# ---------------------------------------------------
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"  # local dev için (prod'da Cloudinary kullanacağız)
+
+USE_CLOUDINARY = (not DEBUG) and bool(os.getenv("CLOUDINARY_CLOUD_NAME"))
+
+if USE_CLOUDINARY:
+    # Cloudinary storage kullan
+    INSTALLED_APPS += [
+        "cloudinary",
+        "cloudinary_storage",
+    ]
+
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.getenv("CLOUDINARY_API_KEY"),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+        secure=True,
+    )
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -163,3 +177,4 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
